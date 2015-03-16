@@ -1,9 +1,9 @@
 {
-    "name": "asimlqt/php-google-spreadsheet-client",
+    "name": "taichunmin/php-google-spreadsheet-client",
     "type": "library",
     "description": "Google Spreadsheet PHP Client",
     "keywords": ["google", "spreadsheet"],
-    "homepage": "https://github.com/asimlqt/php-google-spreadsheet-client",
+    "homepage": "https://github.com/taichunmin/php-google-spreadsheet-client",
     "license": "Apache-2.0",
     "authors": [
         {
@@ -16,6 +16,12 @@
             "email": "martin.czygan@gmail.com",
             "homepage": "http://twitter.com/cvvfj",
             "role": "Packager"
+        },
+        {
+            "name": "Chunmin Tai",
+            "email": "taichunmin@gmail.com",
+            "homepage": "http://taichunmin.idv.tw/",
+            "role": "Developer"
         }
     ],
     "require": {
