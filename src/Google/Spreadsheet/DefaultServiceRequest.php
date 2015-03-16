@@ -27,7 +27,7 @@ class DefaultServiceRequest implements ServiceRequestInterface
 {
     /**
      * Request object
-     * 
+     *
      * @var \Google\Spreadsheet\Request
      */
     protected $accessToken;
@@ -41,49 +41,64 @@ class DefaultServiceRequest implements ServiceRequestInterface
 
     /**
      * Request headers
-     * 
+     *
      * @var array
      */
     protected $headers = array();
 
     /**
      * Service url
-     * 
+     *
      * @var string
      */
     protected $serviceUrl = 'https://spreadsheets.google.com/';
 
     /**
      * User agent
-     * 
+     *
      * @var string
      */
     protected $userAgent = 'PHP Google Spreadsheet Api';
 
     /**
+     * For curl_setopt_array
+     * @var array
+     */
+    protected $curlParams = array (
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => 0,
+        CURLOPT_FAILONERROR => false,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_VERBOSE => false,
+    );
+
+    /**
      * Initializes the service request object.
-     * 
+     *
      * @param \Google\Spreadsheet\Request $request
      */
     public function __construct($accessToken, $tokenType = 'OAuth')
     {
         $this->accessToken = $accessToken;
         $this->tokenType = $tokenType;
+
+        // set CURLOPT_CAINFO
+        $this->curlParams[CURLOPT_CAINFO] = str_replace('\\','/',dirname(__FILE__)).'/cacert.pem';
     }
 
     /**
      * Get request headers
-     * 
+     *
      * @return array
      */
     public function getHeaders()
     {
         return $this->headers;
     }
-    
+
     /**
-     * Set optional request headers. 
-     * 
+     * Set optional request headers.
+     *
      * @param array $headers associative array of key value pairs
      *
      * @return Google\Spreadsheet\DefaultServiceRequest
@@ -96,17 +111,17 @@ class DefaultServiceRequest implements ServiceRequestInterface
 
     /**
      * Get the user agent
-     * 
+     *
      * @return string
      */
     public function getUserAgent()
     {
         return $this->userAgent;
     }
-    
+
     /**
      * Set the user agent. It is a good ides to leave this as is.
-     * 
+     *
      * @param string $userAgent
      *
      * @return Google\Spreadsheet\DefaultServiceRequest
@@ -119,9 +134,9 @@ class DefaultServiceRequest implements ServiceRequestInterface
 
     /**
      * Perform a get request
-     * 
+     *
      * @param string $url
-     * 
+     *
      * @return string
      */
     public function get($url)
@@ -136,7 +151,7 @@ class DefaultServiceRequest implements ServiceRequestInterface
      *
      * @param string $url
      * @param mixed  $postData
-     * 
+     *
      * @return string
      */
     public function post($url, $postData)
@@ -149,10 +164,10 @@ class DefaultServiceRequest implements ServiceRequestInterface
 
     /**
      * Perform a put request
-     * 
+     *
      * @param string $url
      * @param mixed  $postData
-     * 
+     *
      * @return string
      */
     public function put($url, $postData)
@@ -165,9 +180,9 @@ class DefaultServiceRequest implements ServiceRequestInterface
 
     /**
      * Perform a delete request
-     * 
+     *
      * @param string $url
-     * 
+     *
      * @return string
      */
     public function delete($url)
@@ -179,28 +194,20 @@ class DefaultServiceRequest implements ServiceRequestInterface
 
     /**
      * Initialize the curl session
-     * 
-     * @param string $url           
+     *
+     * @param string $url
      * @param array  $requestHeaders
-     * 
+     *
      * @return resource
      */
     protected function initRequest($url, $requestHeaders = array())
     {
-        $curlParams = array (
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => 0,
-            CURLOPT_FAILONERROR => false,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_VERBOSE => false,
-        );
-
         if(substr($url, 0, 4) !== 'http') {
             $url = $this->serviceUrl . $url;
         }
 
         $ch = curl_init();
-        curl_setopt_array($ch, $curlParams);
+        curl_setopt_array($ch, $this->curlParams);
         curl_setopt($ch, CURLOPT_URL, $url);
 
         $headers = array();
@@ -214,23 +221,25 @@ class DefaultServiceRequest implements ServiceRequestInterface
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_USERAGENT, $this->getUserAgent());
-        return $ch;       
+        return $ch;
     }
 
     /**
      * Executes the api request.
-     * 
+     *
      * @return string the xml response
      *
      * @throws \Google\Spreadsheet\Exception If the was a problem with the request.
      *                                       Will throw an exception if the response
      *                                       code is 300 or greater
-     *                                       
+     *
      * @throws \Google\Spreadsheet\UnauthorizedException
      */
     protected function execute($ch)
     {
         $ret = curl_exec($ch);
+        if(false === $ret)
+            throw new Exception(curl_error($ch), curl_errno($ch));
 
         $info = curl_getinfo($ch);
         $httpCode = (int)$info['http_code'];
